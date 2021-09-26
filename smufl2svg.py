@@ -55,7 +55,7 @@ HTML_TEMPLATE = """
 
 IMG_TEMPLATE = """
 <div class="item">
-    <img src="{src}"><br>
+    <img src="{src}" title="{glyph_name}"><br>
     <div>{label}</div>
 </div>
 """
@@ -75,14 +75,40 @@ with open("metadata/glyphnames.json") as f:
 
 
 CLASSES = {}
-ORDERED_CLASSES = []
+ORDERED_CLASSES = [
+    'tf_metronomeMarks',
+    'rests',
+    'octaves',
+    'forTextBasedApplications',
+    'combiningStaffPositions',
+    'tf_ornaments',
+    'dynamics',
+    'Uncategorized',
+    'pauses',
+    'pausesAbove',
+    'pausesBelow',
+    'tf_hairpins',
+    'tf_pictograms',
+    
+    # clefs
+    'clefsF',
+    'clefsG',
+    'clefsC',
+    'clefs',
+    
+    # staves
+    'tf_zeroWidth',
+]
 with open("metadata/classes.json") as f:
     classes_data = json.load(f)
     for k, items in classes_data.items():
-        ORDERED_CLASSES.append(k)
+        if k not in ORDERED_CLASSES:
+            ORDERED_CLASSES.append(k)
         for item in items:
             CLASSES[item] = k
-ORDERED_CLASSES = sorted(ORDERED_CLASSES)
+            
+# ignore symbols that either need to be combined or extend outside a reasonable bounding box
+STOPWORDS = ['number below', 'number above', 'combining', 'notehead', '512th', '1024th', 'systemDivider', 'organGerman']
 
 
 def main(args):
@@ -108,45 +134,71 @@ def main(args):
     for child in root:
         if child.tag == "{http://www.w3.org/2000/svg}font-face":
             viewbox = child.attrib["bbox"]
-            values = [int(x) for x in viewbox.split()]
-            width = values[2] - values[0]
-            height = values[3] - values[1]
+            minx, miny, maxx, maxy = [int(x) for x in viewbox.split()]
+            
+            miny += 600
+            maxx -= 400
+            maxy += 800
+
+            width = maxx - minx
+            height = maxy - miny
+            viewbox = "{minx} {miny} {maxx} {maxy}".format(minx=minx, miny=miny, maxx=maxx, maxy=maxy)
         if child.tag != "{http://www.w3.org/2000/svg}glyph":
             continue
         if "unicode" not in child.attrib or "d" not in child.attrib:
             continue
         character_u = child.attrib["unicode"]
         code_point = ord(list(character_u)[0])
+        try:
+            glyph_name = GLYPH_NAMES[code_point]
+        except KeyError:
+            continue
         if code_point in GLYPH_DESCRIPTIONS:
-            glyph_name = (
+            label = (
                 GLYPH_DESCRIPTIONS[code_point].replace("/", "-").replace(":", "-")
             )
         else:
             # continue
-            glyph_name = child.attrib["glyph-name"]
+            label = child.attrib["glyph-name"]
+            
+        has_stop_word = False
+        for word in STOPWORDS:
+            if word in label.lower() or word in glyph_name:
+                print("Skip", glyph_name, repr(label))
+                has_stop_word = True
+                break
+        if has_stop_word:
+            continue
 
         path = os.path.join(args.output_dir, glyph_name) + ".svg"
 
         try:
-            cls = CLASSES[GLYPH_NAMES[code_point]]
+            cls = CLASSES[glyph_name]
         except KeyError:
             cls = "Uncategorized"
+            
+        if cls == "noteheads" or cls not in ORDERED_CLASSES:
+            continue # skip all note heads
 
         if cls not in items:
             items[cls] = []
         items[cls].append(
             {
                 "path": path,
-                "html": IMG_TEMPLATE.format(src=path, label=glyph_name),
+                "html": IMG_TEMPLATE.format(src=path, label=label, glyph_name=glyph_name),
                 "d": child.attrib["d"],
             }
         )
 
     images_html_items = []
-    for cls_k, items in items.items():
+    for cls_k in ORDERED_CLASSES:
+        if cls_k not in items:
+            print("Nothing in", cls_k)
+            continue
+        inner_items = items[cls_k]
         images_html_items.append("<h1>" + cls_k + "</h1>")
         images_html_items.append('<div class="images">')
-        for (i, item) in enumerate(items):
+        for (i, item) in enumerate(inner_items):
             with open(item["path"], "w") as f:
                 f.write(
                     SVG_TEMPLATE.format(
