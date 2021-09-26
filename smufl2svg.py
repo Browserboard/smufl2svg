@@ -136,6 +136,7 @@ def main(args):
             viewbox = child.attrib["bbox"]
             minx, miny, maxx, maxy = [int(x) for x in viewbox.split()]
             
+            # the original bounding box is bigger than we need
             miny += 600
             maxx -= 400
             maxy += 800
