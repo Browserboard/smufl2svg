@@ -184,12 +184,21 @@ def main(args):
 
         if cls not in items:
             items[cls] = []
+
+        item = {
+            "path": path,
+            "html": IMG_TEMPLATE.format(src=path, label=label, glyph_name=glyph_name),
+            "d": child.attrib["d"],
+        }
+        with open(item["path"], "w") as f:
+            f.write(
+                SVG_TEMPLATE.format(
+                    width=width, height=height, viewbox=viewbox, path=item["d"]
+                )
+        )
+
         items[cls].append(
-            {
-                "path": path,
-                "html": IMG_TEMPLATE.format(src=path, label=label, glyph_name=glyph_name),
-                "d": child.attrib["d"],
-            }
+            item
         )
 
     images_html_items = []
@@ -201,12 +210,6 @@ def main(args):
         images_html_items.append("<h1>" + cls_k + "</h1>")
         images_html_items.append('<div class="images">')
         for (i, item) in enumerate(inner_items):
-            with open(item["path"], "w") as f:
-                f.write(
-                    SVG_TEMPLATE.format(
-                        width=width, height=height, viewbox=viewbox, path=item["d"]
-                    )
-                )
             images_html_items.append(item["html"])
             # if i > 0 and i % 10 == 0:
             # images_html_items.append('<div class="break"></div>')
