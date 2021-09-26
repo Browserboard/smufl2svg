@@ -158,7 +158,7 @@ def main(args):
             # images_html_items.append('<div class="break"></div>')
         images_html_items.append("</div>")
 
-    with open("demo.html", "w") as f:
+    with open("index.html", "w") as f:
         f.write(HTML_TEMPLATE.replace("$IMAGES_HTML", "".join(images_html_items)))
 
 
