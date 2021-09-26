@@ -55,7 +55,7 @@ HTML_TEMPLATE = """
 
 IMG_TEMPLATE = """
 <div class="item">
-    <img src="file:///Users/steve/dev/websites/wbthing/packs/{src}"><br>
+    <img src="{src}"><br>
     <div>{label}</div>
 </div>
 """
@@ -122,8 +122,8 @@ def main(args):
                 GLYPH_DESCRIPTIONS[code_point].replace("/", "-").replace(":", "-")
             )
         else:
-            continue
-            # glyph_name = child.attrib["glyph-name"]
+            # continue
+            glyph_name = child.attrib["glyph-name"]
 
         path = os.path.join(args.output_dir, glyph_name) + ".svg"
 
