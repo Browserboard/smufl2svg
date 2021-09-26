@@ -47,6 +47,7 @@ HTML_TEMPLATE = """
         </style>
     </head>
     <body>
+        <p><a href="https://github.com/browserboard/smufl2svg">Source code</a></p>
         $IMAGES_HTML
     </body>
 </html>
