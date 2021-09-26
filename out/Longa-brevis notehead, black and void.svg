@@ -1,0 +1,11 @@
+<?xml version="1.0" standalone="no"?>
+<svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="-434 -1992 2319 1951"
+    width="2753"
+    height="3943"
+    >
+    <g transform="matrix(1 0 0 -1 0 0)">
+        <path style="fill: #000000" d="M16 141h304c7 -1 12 -8 12 -16v-250c0 -8 -7 -16 -16 -16h-300c-9 0 -16 8 -16 16v250c0 9 7 16 16 16zM32 109v-218h132v218h-132z" />
+    </g>
+</svg>
